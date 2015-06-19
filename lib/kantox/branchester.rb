@@ -1,10 +1,23 @@
-require 'kantox/branchester/version'
+require_relative 'branchester/version'
 require 'logger'
 require 'git'
+
+class << Dir
+  MX = Mutex.new
+  alias_method :thread_unsafe_chdir, :chdir
+  def chdir other, &cb
+    if block_given?
+      MX.synchronize { thread_unsafe_chdir other, &cb }
+    else
+      thread_unsafe_chdir other, &cb
+    end
+  end
+end
 
 module Kantox
   module Branchester
     THREADS = 4
+    PREFIX = 'bch-' # prefix for new origin
 
     class Error < ::StandardError ; end
 
@@ -19,22 +32,37 @@ module Kantox
 
       def check threads = THREADS
         g = Git.open(@githome, :log => @logger)
-        remotes = g.branches.remote.each_slice threads
-        remotes.map do |branches|
+        slices = (remotes = g.branches.remote).size.divmod threads
+        remotes.each_slice(slices.first + (slices.last.zero? ? 0 : 1)).map do |branches|
           Thread.new do
-            result = check_branches @githome, branches.dup
+            result = check_branches @githome,
+                                    g.config['remote.origin.url'],
+                                    g.lib.branch_current,
+                                    branches #.map { |b| "#{b.remote.name}/#{b.name}" } # (&:full) #
             @mx.synchronize { @result << result }
           end
-        end.reduce &:join
+        end.each &:join
         @result
       end
 
-      def check_branches local, branches
+      def check_branches local, remote, branch, branches
         branches.inject({}) do |memo, b|
-          Dir.mktmpdir do |temp|
-            Dir.chdir temp
-            g = Git.clone local
-            memo[b] = g.merge b
+          @logger.info "[#{Thread.current}] ⇒ checking branch: #{b.name}"
+          temp = Dir.mktmpdir
+          begin
+            g = Git.clone local, 'clone', path: temp
+            g.add_remote "#{PREFIX}-#{b.remote.name}", remote, fetch: true
+            memo[b.name] =  begin
+                              case msg = g.branches[branch].merge(g.branches["#{PREFIX}-#{b.remote.name}/#{b.name}"])
+                              when /'origin\/master'/ then { success: { onmaster: msg } }
+                              when /up-to-date/ then { success: { uptodate: msg } }
+                              else { success: { merged: msg } }
+                              end
+                            rescue Git::GitExecuteError => e
+                              { error: e.message.split($/)[1..-1] }
+                            end
+          ensure
+            FileUtils.rm_rf temp
           end
           memo
         end
@@ -42,7 +70,10 @@ module Kantox
     end
 
     def self.yo threads = THREADS
-      Yo.new.check threads
+      result = Yo.new.check threads
+      require 'pry'
+      binding.pry
+      File.write '/tmp/result.txt', "#{result}"
     end
   end
 end
