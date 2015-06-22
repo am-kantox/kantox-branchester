@@ -30,7 +30,7 @@ module Kantox
       def initialize dir = nil
         @githome = dir || Dir.pwd
         @logger = ::Logger.new STDOUT
-        @logger.level = ::Logger::WARN
+        @logger.level = ::Logger::INFO
         @mx = Mutex.new
         @result = []
         @cfg_file, @log_file = prepare_files
@@ -129,7 +129,8 @@ module Kantox
           blame: logstamp.committer.email,
           message: logstamp.message,
           sha: logstamp.sha
-        ).merge(age: (options.branches[branch].checked - options.branches[branch].modified).round / (60*60*24) )
+        );
+        options.branches[branch].merge!(age: (options.branches[branch].checked - options.branches[branch].modified).round / (60*60*24) )
 
         if options.branches[branch].age > (options.config!.age || DEFAULT_BRANCH_AGE)
           :obsolete
