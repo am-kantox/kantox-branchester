@@ -44,8 +44,9 @@ module Kantox
         if options.config!.skip.is_a?(Array) && !options.config!.skip.empty?
           rejected = remotes.select { |b| options.config!.skip.include? b.name }
           rejected_as_string = rejected.join("\n\t")
-          @logger.warn "Will not proceed following branches:\n\t#{rejected_as_string}"
+          puts "Will not proceed following branches:\n\t#{rejected_as_string}"
           remotes -= rejected
+          puts "Total branches to proceed: #{remotes.size}:\n"
         end
 
         unless remotes.size.zero?
@@ -78,11 +79,13 @@ module Kantox
             g.add_remote "#{PREFIX}-#{b.remote.name}", remote, fetch: true
             case branch_state b.name, g.log.to_a.first
             when :obsolete
-              @logger.warn "[#{Thread.current}] ⇒ skipping branch: #{b.name} ⇒ :obsolete (age: #{options.branches[b.name].age} days)"
+              @logger.info "[#{Thread.current}] ⇒ skipping branch: #{b.name} ⇒ :obsolete (age: #{options.branches[b.name].age} days)"
+              print '-' if @logger.level > Logger::INFO
               (options.config!.skip ||= []) << b.name
               next memo
             when :boi
-              @logger.warn "[#{Thread.current}] ⇒ processing branch: #{b.name}"
+              @logger.info "[#{Thread.current}] ⇒ processing branch: #{b.name}"
+              print '*' if @logger.level > Logger::INFO
             else raise 'Lame programmer error'
             end
             memo[b.name] =  begin
@@ -139,8 +142,8 @@ module Kantox
 
     def self.yo threads = THREADS
       Yo.new.check(threads).tap do |res, opt|
-        puts "\n\n\e[01mSome branches failed to merge automatically:\e[0m"
-        puts res.select { |_, v| v[:error] }.map { |(k, v)| [k, v[:error].join("\n\t")].join("\n\t") }.join("\n\n").gsub(/(CONFLICT)/, "\e[01;38;05;196m\\1\e[0m")
+        puts "\n\n\e[01mSome branches failed to merge automatically:\e[0m\n"
+        puts res.select { |_, v| v[:error] }.map { |(k, v)| [k, v[:error].join("\n\t")].join("\n\t") }.join("\n\n").gsub(/(CONFLICT)(.*?)(\S+)$/, "\e[01;38;05;196m\\1\e[0m\\2\e[01;38;05;68m\\3\e[0m")
       end
     end
   end
