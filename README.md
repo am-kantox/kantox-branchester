@@ -1,5 +1,7 @@
 # Kantox::Branchester
 
+**Pronounces exactly as Mancunians call their city, but with respect to branching.**
+
 Include this gem into your gemfile and stay notified about all the possible
 merge conflicts against all the currently active branches.
 
@@ -21,7 +23,15 @@ Or install it yourself as:
 
 ## Usage
 
-Very first run will be long, since the information about all the active
+**TL;DR:**
+```
+$ echo "gem 'kungfuig', git: 'git@github.com:am-kantox/kungfuig', branch: 'master'
+gem 'kantox-branchester', git: 'git@github.com:am-kantox/kantox-branchester', branch: 'master'" >> Gemfile
+$ bundle
+$ bundle exec branchester
+```
+
+Very first run could be long, since the information about all the active
 branches is to be gathered. The subsequent run should not take long since
 the results are cached.
 
@@ -44,21 +54,22 @@ Will try to merge 28 branches:
 ============================
 
 Some branches failed to merge automatically into feature/check-branchester
+
 feature/CO-32_CM_sha_dir_eme ==>
-  Recorded preimage for 'Gemfile.lock'
-	Recorded preimage for 'db/schema.rb'
-	CONFLICT (content): Merge conflict in db/schema.rb
-	CONFLICT (content): Merge conflict in Gemfile.lock
-	CONFLICT (content): Merge conflict in Gemfile
-	Automatic merge failed; fix conflicts and then commit the result.
+    Recorded preimage for 'Gemfile.lock'
+    Recorded preimage for 'db/schema.rb'
+    CONFLICT (content): Merge conflict in db/schema.rb
+    CONFLICT (content): Merge conflict in Gemfile.lock
+    CONFLICT (content): Merge conflict in Gemfile
+    Automatic merge failed; fix conflicts and then commit the result.
 
 hotfix/PT-2246-demo-platform-phone-quotes ==>
-  CONFLICT (content): Merge conflict in app/mutations/liquidity_provider_router.rb
-	Automatic merge failed; fix conflicts and then commit the result.
+    CONFLICT (content): Merge conflict in app/mutations/liquidity_provider_router.rb
+    Automatic merge failed; fix conflicts and then commit the result.
 
 vemv-letter-opener-indication ==>
-  CONFLICT (content): Merge conflict in config/environments/development.rb
-	Automatic merge failed; fix conflicts and then commit the result.
+    CONFLICT (content): Merge conflict in config/environments/development.rb
+    Automatic merge failed; fix conflicts and then commit the result.
 
 ```
 
@@ -85,10 +96,19 @@ config: !ruby/hash:Hashie::Mash
 The above means only branches, not older than 7 days and only last 1000 commits
 will be taken into account.
 
+## “Yes, I’m a nerd” (please don’t read this section unless you actually are)
+
+Each launch stores dump of result in `branchester` directory. This dump
+might be examined to gather additional information on merge fails (whom to blame etc.)
+
+It’s stored as dump because I have a virtual plan to create a web-service for it.
+
 ## To Do
 
-  * «urgent» update a list of active branches once on a startup;
-  * accept a `--full` parameter in the command line, forcing to ignore blacklist.
+  * _urgent_ update a list of active branches once on a startup;
+  * accept a `--full` parameter in the command line, forcing to ignore whitelist;
+  * store everything in the `RethinkDB` + make a web interface;
+  * launch a github-attached service and conquer the world.
 
 ## Development
 

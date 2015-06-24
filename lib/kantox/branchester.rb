@@ -20,7 +20,7 @@ module Kantox
   module Branchester
     THREADS = 4
     DEFAULT_LOG_COUNT = 1_000
-    DEFAULT_BRANCH_AGE = 7
+    DEFAULT_BRANCH_AGE = 30
     HEAD = 'head'
     ORIGIN = 'origin'
     REMOTES = 'remotes'
@@ -207,7 +207,7 @@ module Kantox
       Yo.new.check(threads).tap do |res, yo|
         fails = res.select { |_, v| v[:status] == :error }
         status = fails.empty? ? "Everything merged successfully" : "Some branches failed to merge automatically"
-        puts "\n\e[01m#{status} into #{yo.current}\e[0m\n"
+        puts "\n\e[01m#{status} into #{yo.current}\e[0m\n\n"
         fails.each do |k, v|
           puts "#{k} ==>\n\t"
           puts v[:message].strip.join("\n\t").gsub(/(CONFLICT)(.*?)(\S+)$/, "\e[01;38;05;196m\\1\e[0m\\2\e[01;38;05;68m\\3\e[0m")
