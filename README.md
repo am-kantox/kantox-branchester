@@ -96,6 +96,10 @@ config: !ruby/hash:Hashie::Mash
 The above means only branches, not older than 7 days and only last 1000 commits
 will be taken into account.
 
+### Is it any good?
+
+[Yes](http://news.ycombinator.com/item?id=3067434)
+
 ## “Yes, I’m a nerd” (please don’t read this section unless you actually are)
 
 Each launch stores dump of result in `branchester` directory. This dump
