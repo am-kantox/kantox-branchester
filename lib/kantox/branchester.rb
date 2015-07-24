@@ -210,7 +210,7 @@ module Kantox
         puts "\n\e[01m#{status} into #{yo.current}\e[0m\n\n"
         fails.each do |k, v|
           puts "#{k} ==>\n\t"
-          puts v[:message].strip.join("\n\t").gsub(/(CONFLICT)(.*?)(\S+)$/, "\e[01;38;05;196m\\1\e[0m\\2\e[01;38;05;68m\\3\e[0m")
+          puts [*v[:message]].join("\n\t").gsub(/(CONFLICT)(.*?)(\S+)$/, "\e[01;38;05;196m\\1\e[0m\\2\e[01;38;05;68m\\3\e[0m")
           puts
         end
       end
